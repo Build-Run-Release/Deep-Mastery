@@ -1,16 +1,47 @@
 # Lesson 2: CSS3 & Responsive Design
 
-Deep dive into the CSS Box Model, specificity, Flexbox, and CSS Grid. Learn about CSS variables, keyframe animations, and media queries.
+CSS is not just about making things look pretty; it's a declarative programming language for the browser's painting engine. Deep dive into the CSS Box Model, specificity, Flexbox, and CSS Grid.
 
-## Tailwind CSS
+## The Box Model & Layout Algorithms
 
-Transition from raw CSS to utility-first styling. Configure the `tailwind.config.js` file, create custom themes, and optimize for production.
+Every element on a web page is a rectangular box. Understanding `margin`, `border`, `padding`, and `content` is non-negotiable. Furthermore, understand how `box-sizing: border-box` changes this calculation to make layout math easier.
+
+We will master CSS Grid for two-dimensional layouts (overall page structure) and Flexbox for one-dimensional layouts (aligning items in a row or column).
+
+## Tailwind CSS: Utility-First Architecture
+
+We transition from raw CSS to utility-first styling with Tailwind CSS. Instead of inventing class names like `.card-container`, you compose styles using utilities like `flex p-4 bg-white shadow-lg rounded-xl`.
+
+Learn how to configure the `tailwind.config.js` file to create custom design systems, use arbitrary values (e.g., `h-[500px]`), and optimize for production by purging unused styles.
 
 **Resources:**
 * [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 * [CSS Tricks: A Complete Guide to Flexbox](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
+* [CSS Tricks: A Complete Guide to Grid](https://css-tricks.com/snippets/css/complete-guide-grid/)
 
-### Milestone Project: Responsive Landing Page
-Create a fully responsive landing page for a fictional startup using only Tailwind CSS. It must look great on mobile, tablet, and desktop viewports.
+---
+
+### Milestone Project: Responsive Dashboard
+**Objective:** Create a fully responsive analytics dashboard using only Tailwind CSS.
+**Requirements:**
+- It must utilize CSS Grid for the main layout.
+- It must utilize Flexbox for the internal widget alignments.
+- It must look perfect on mobile (stacked), tablet (2 columns), and desktop (3+ columns).
+
+<CodeEditor initialCode={`<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard Overview</h1>
+    <!-- Build your grid layout here -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Card 1 -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h2 class="text-sm font-medium text-gray-500">Total Revenue</h2>
+        <p class="text-2xl font-bold text-gray-900 mt-2">$45,231.89</p>
+      </div>
+
+    </div>
+  </div>
+</div>`} />
 
 <CompleteButton />

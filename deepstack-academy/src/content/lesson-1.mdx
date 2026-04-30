@@ -1,26 +1,52 @@
 # Lesson 1: The Modern UI & Foundation
 
-Welcome to the foundation of web development. We will ensure you do not just memorize tags, but understand how browsers render interfaces.
+Welcome to the foundation of web development. We will ensure you do not just memorize tags, but understand how browsers render interfaces. This is the cornerstone of all front-end engineering.
 
 ## HTML5 & Accessibility (A11y)
 
-Go beyond basic tags. We must understand semantic HTML, document object model (DOM) trees, and the critical importance of ARIA roles, screen readers, and building accessible web apps from day one.
+The internet is for everyone. When you write HTML, you are creating a Document Object Model (DOM) tree. This tree is what the browser's rendering engine uses to paint pixels on the screen, and what assistive technologies (like screen readers) use to interpret the page for visually impaired users.
+
+We must understand semantic HTML. Tags like `<div>` and `<span>` are meaningless. Instead, use `<header>`, `<main>`, `<article>`, `<section>`, and `<footer>`.
+
+### The Importance of ARIA
+
+Accessible Rich Internet Applications (ARIA) roles are HTML attributes that provide extra semantic information to assistive technologies. For example, if you build a custom toggle switch out of a `<div>`, a screen reader won't know it's a switch. You must add `role="switch"` and `aria-checked="true"`.
 
 **Resources:**
 * [MDN Web Docs: HTML](https://developer.mozilla.org/en-US/docs/Web/HTML)
 * [W3C Accessibility Guidelines](https://www.w3.org/WAI/standards-guidelines/wcag/)
+* [A11y Project](https://www.a11yproject.com/)
+
+---
 
 ### Milestone Project: Semantic Portfolio
-Build a personal portfolio strictly using HTML5 semantic tags (`<header>`, `<main>`, `<article>`, `<section>`, `<footer>`) without writing a single line of CSS. Focus on the document outline and screen reader accessibility.
+**Objective:** Build a personal portfolio strictly using HTML5 semantic tags without writing a single line of CSS.
+**Requirements:**
+- Use `<header>`, `<main>`, `<article>`, `<section>`, `<footer>`.
+- Include an accessible form using `<label for="id">`.
+- Focus on the document outline and screen reader accessibility.
 
 <CodeEditor initialCode={`<!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>A11y Matters</title>
+  <meta charset="UTF-8">
+  <title>Semantic Portfolio</title>
 </head>
 <body>
+  <!-- Start building your semantic portfolio here -->
+  <header>
+    <h1>Ada Lovelace</h1>
+    <nav>
+      <ul>
+        <li><a href="#about">About</a></li>
+      </ul>
+    </nav>
+  </header>
   <main>
-    <button aria-label="Close dialog">X</button>
+    <section id="about">
+      <h2>About Me</h2>
+      <p>I am a software engineer.</p>
+    </section>
   </main>
 </body>
 </html>`} />

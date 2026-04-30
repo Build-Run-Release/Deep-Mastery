@@ -1,15 +1,28 @@
 # Lesson 6: The Database Layer (MongoDB)
 
-Data modeling is where most intermediate developers struggle. We will go far beyond basic CRUD operations.
+Data modeling is where most intermediate developers struggle. We will go far beyond basic CRUD operations and treat the database as a powerful processing engine.
 
-## Advanced Mongoose
-Learn complex schema design (referencing vs. embedding), indexing for query performance, population, virtuals, middleware (pre/post hooks), and Aggregation Pipelines.
+## Advanced Mongoose & Data Modeling
+
+In NoSQL, you must design your schema based on your application's read/write patterns.
+*   **Referencing vs. Embedding:** When to store data in the same document vs. keeping them separate and linking them via `ObjectIds`.
+*   **Indexing:** How to speed up query performance by orders of magnitude.
+*   **Virtuals & Middleware:** Deriving computed properties and using pre/post hooks to hash passwords before saving.
+
+## The Aggregation Framework
+
+The true power of MongoDB lies in its aggregation pipelines. It is a multi-stage data processing pipeline.
 
 **Resources:**
 * [MongoDB University](https://learn.mongodb.com/)
 * [Mongoose Documentation](https://mongoosejs.com/docs/)
 
+---
+
 ### Milestone Project: Data Analytics Engine
-Write complex Mongoose Aggregation pipelines to generate analytical reports from a large, seeded database of user transactions.
+**Objective:** Write complex Mongoose Aggregation pipelines.
+**Requirements:**
+- Generate analytical reports from a large, seeded database of user transactions.
+- Calculate the total revenue per month, grouped by user demographics.
 
 <CompleteButton />

@@ -1,14 +1,29 @@
 # Lesson 5: Backend Engineering with Node.js & Express
 
-Shift your mindset from the browser to the server. Understand the V8 engine, the Node event loop, and the file system module.
+Shift your mindset from the browser to the server. You are no longer constrained by browser security models, but you must now manage server resources.
+
+## Node.js Core
+
+Understand the V8 engine, the Node event loop (libuv), and the file system (`fs`) module. Learn how Streams and Buffers allow you to handle massive files without crashing your server memory.
 
 ## Express.js Architecture
-Learn the MVC (Model-View-Controller) architecture. Dive deep into middleware functions, the request/response cycle, and centralized error handling.
+
+Learn the MVC (Model-View-Controller) architecture. Express is fundamentally a series of middleware functions.
+
+*   **Middleware:** Functions that have access to the request object (`req`), the response object (`res`), and the `next` middleware function in the application’s request-response cycle.
+*   **Error Handling:** Implement centralized error handling middleware to catch async errors globally.
 
 **Resources:**
-* [Express.js Docs](https://expressjs.com/)
+* [Node.js Documentation](https://nodejs.org/en/docs/)
+* [Express.js Routing](https://expressjs.com/en/guide/routing.html)
+
+---
 
 ### Milestone Project: RESTful API
-Build a fully versioned RESTful API for a blogging platform. Implement routing, middleware for logging, and robust error handling.
+**Objective:** Build a fully versioned RESTful API for a blogging platform.
+**Requirements:**
+- Implement CRUD operations for Users and Posts.
+- Write custom middleware for request logging.
+- Write a global error handling middleware.
 
 <CompleteButton />

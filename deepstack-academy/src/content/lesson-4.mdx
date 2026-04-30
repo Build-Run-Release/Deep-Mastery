@@ -1,14 +1,29 @@
 # Lesson 4: React & Frontend Architecture
 
-Move away from basic tutorials and focus on how React actually works under the hood. Understand the reconciliation process and diffing algorithm.
+Move away from basic tutorials and focus on how React actually works under the hood. Understand the reconciliation process, the Virtual DOM, and the fiber architecture.
 
 ## Hooks & State Management
-Deep dive into `useState`, `useEffect` (including cleanup functions), `useContext`, and performance hooks like `useMemo` and `useCallback`.
+
+Hooks are functions that let you "hook into" React state and lifecycle features from function components.
+
+*   `useState`: For local component state.
+*   `useEffect`: For side effects (data fetching, subscriptions). Understand the dependency array and cleanup functions to prevent memory leaks.
+*   `useContext`: To avoid prop drilling by sharing data globally.
+
+## Performance Optimization
+
+Learn to use `useMemo` to memoize expensive calculations and `useCallback` to memoize function definitions, preventing unnecessary re-renders of child components.
 
 **Resources:**
 * [React Official Documentation](https://react.dev/)
+* [Overreacted: A Complete Guide to useEffect](https://overreacted.io/a-complete-guide-to-useeffect/)
+
+---
 
 ### Milestone Project: Complex State Manager
-Create an e-commerce shopping cart application. You must use `useReducer` and `useContext` to manage the global cart state (adding items, removing, calculating totals).
+**Objective:** Create an e-commerce shopping cart application.
+**Requirements:**
+- You must use `useReducer` to handle complex state logic (Add, Remove, Increment, Decrement).
+- You must use `useContext` to provide the cart state to deeply nested product components.
 
 <CompleteButton />

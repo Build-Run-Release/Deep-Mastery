@@ -1,19 +1,60 @@
 # Lesson 3: JavaScript Mastery (The Engine)
 
-This is the most critical course. Most full-stack errors stem from a poor understanding of core JavaScript.
+This is the most critical course. Most full-stack errors stem from a poor understanding of core JavaScript. You cannot master React or Node.js without mastering the underlying engine.
 
-## Core Mechanics
+## Core Mechanics: Beyond Syntax
 
 Understanding the execution context, the call stack, memory heap, and lexical scoping is vital before touching frameworks.
 
+*   **Execution Context:** The environment in which JavaScript code is evaluated and executed.
+*   **Call Stack:** A LIFO (Last In, First Out) data structure used to store execution contexts.
+*   **Closures:** A function combined with its lexical environment. A closure gives you access to an outer function's scope from an inner function.
+
 ## Asynchronous JavaScript
-We will exhaustively cover the Event Loop (microtasks vs. macrotasks), Callbacks, Promises, async/await, and handling network requests.
+
+JavaScript is a single-threaded, non-blocking, asynchronous, concurrent language. We will exhaustively cover:
+1.  **The Event Loop:** How the Call Stack, Web APIs, Task Queue, and Microtask Queue interact.
+2.  **Promises:** The modern way to handle asynchronous operations, resolving callback hell.
+3.  **Async/Await:** Syntactic sugar over Promises to write async code that looks synchronous.
 
 **Resources:**
 * [JavaScript.info](https://javascript.info/)
 * [MDN: Asynchronous JavaScript](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous)
+* [Loupe: Event Loop Visualizer](http://latentflip.com/loupe/)
 
-### Milestone Project: Weather Dashboard
-Build a dashboard that fetches data from an external weather API using `async/await`. Handle loading states, errors, and display the data dynamically manipulating the DOM.
+---
+
+### Milestone Project: Weather Dashboard API
+**Objective:** Build an application that fetches data from an external API using `async/await`.
+**Requirements:**
+- Handle loading states (show a spinner).
+- Handle error states (`try/catch` blocks).
+- Dynamically manipulate the DOM to display the fetched JSON data.
+
+<CodeEditor initialCode={`<div id="app" class="p-8 font-sans">
+  <button id="fetchBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Fetch User Data</button>
+  <div id="result" class="mt-4 p-4 bg-gray-100 rounded hidden"></div>
+</div>
+
+<script>
+  const btn = document.getElementById('fetchBtn');
+  const resultDiv = document.getElementById('result');
+
+  btn.addEventListener('click', async () => {
+    try {
+      btn.textContent = 'Loading...';
+      // Use JSONPlaceholder for mock data
+      const response = await fetch('https://jsonplaceholder.typicode.com/users/1');
+      const data = await response.json();
+
+      resultDiv.classList.remove('hidden');
+      resultDiv.innerHTML = \`<h3 class="font-bold">\${data.name}</h3><p>\${data.email}</p>\`;
+    } catch (error) {
+      resultDiv.innerHTML = '<p class="text-red-500">Error fetching data</p>';
+    } finally {
+      btn.textContent = 'Fetch User Data';
+    }
+  });
+</script>`} />
 
 <CompleteButton />
