@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String?
+  role          String         @default("student") // "student" or "admin"
+  createdAt     DateTime       @default(now())
+  subscriptions Subscription[]
+  progress      Progress[]
+}
+
+model Subscription {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  plan        String   // e.g. "free", "pro"
+  status      String   // e.g. "active", "expired"
+  expiryDate  DateTime?
+}
+
+model Progress {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  lessonId    String
+  completed   Boolean  @default(false)
+
+  @@unique([userId, lessonId])
+}
