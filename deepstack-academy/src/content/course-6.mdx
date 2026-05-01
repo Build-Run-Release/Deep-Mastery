@@ -1,0 +1,44 @@
+# Full-Stack Integration & Next.js
+
+Welcome to **Phase 6**. It is time to bring the MERN stack together, then upgrade it with Next.js for production-grade web applications.
+
+## Next.js App Router
+
+Next.js is the React framework for the web. The App Router introduces a paradigm shift in how we build React applications.
+
+### Server Components vs. Client Components
+
+By default, components inside `app/` are **React Server Components (RSC)**. They render on the server, sending zero JavaScript bundle to the client, leading to faster page loads and better SEO.
+
+You only use **Client Components** (by adding `'use client'` at the top of the file) when you need interactivity:
+*   State (`useState`, `useReducer`)
+*   Lifecycle effects (`useEffect`)
+*   Browser APIs (DOM manipulation)
+*   Event listeners (`onClick`, `onChange`)
+
+### File-Based Routing
+
+Routing is defined by the file system. A folder named `dashboard` with a `page.tsx` file automatically creates a `/dashboard` route.
+
+## Rendering Strategies
+
+Next.js gives you granular control over how your pages are rendered.
+
+*   **Static Site Generation (SSG):** HTML is generated at build time. Best for blogs and documentation.
+*   **Server-Side Rendering (SSR):** HTML is generated on each request. Best for highly dynamic data.
+*   **Incremental Static Regeneration (ISR):** You can update static pages after you've built your site, without needing a full rebuild.
+
+### Server Actions
+
+Server actions allow you to run asynchronous server code directly from your React components, eliminating the need to write manual API routes for form mutations.
+
+```tsx
+// Server Action
+export async function createPost(formData: FormData) {
+  'use server';
+  const title = formData.get('title');
+  // Insert into DB
+}
+```
+
+<CompleteButton lessonId="lesson_6" xpReward={300} />

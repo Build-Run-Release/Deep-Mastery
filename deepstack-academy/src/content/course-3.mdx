@@ -1,0 +1,46 @@
+# React & Frontend Architecture
+
+Welcome to **Phase 3**. We are moving away from basic tutorials to understand how React actually works under the hood.
+
+## React Fundamentals
+
+### The Virtual DOM & Reconciliation
+
+React maintains a lightweight representation of the real DOM in memory called the **Virtual DOM**. When state changes, React creates a new Virtual DOM, compares it with the old one (Diffing Algorithm), and calculates the most efficient way to update the real DOM (Reconciliation).
+
+### JSX Compilation
+
+Browsers don't understand JSX. It gets compiled down into `React.createElement()` calls by tools like Babel or SWC.
+
+```jsx
+// JSX
+const element = <h1 className="title">Hello World</h1>;
+
+// Compiled Output
+const element = React.createElement(
+  'h1',
+  { className: 'title' },
+  'Hello World'
+);
+```
+
+## Hooks & State Management
+
+### `useState` and `useEffect` Deep Dive
+
+The `useEffect` hook is not a lifecycle method. It is a mechanism to synchronize your component with an external system.
+
+*   **Dependency Array:** If you leave it out, it runs on every render. If you pass `[]`, it runs once.
+*   **Cleanup Function:** Used to prevent memory leaks (e.g., clearing intervals or unsubscribing from WebSockets).
+
+<CodeEditor challengeId="react-hooks" initialCode="import { useState, useEffect } from 'react';\n\nexport default function Timer() {\n  const [time, setTime] = useState(0);\n  // Implement an effect that increments the timer every second\n  return <div>{time}</div>;\n}" />
+
+### Performance Optimization
+
+Use `useMemo` to cache expensive calculations and `useCallback` to cache function definitions between renders.
+
+## Global State & Routing
+
+For complex applications, prop drilling becomes unmanageable. We utilize global state solutions like **Zustand** or **Redux Toolkit**.
+
+<CompleteButton lessonId="lesson_3" xpReward={150} />
