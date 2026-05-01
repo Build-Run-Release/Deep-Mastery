@@ -57,6 +57,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     checkAuth();
+    return () => {
+        isMounted = false;
+    }
   }, []);
 
   const login = (userData: User) => {
