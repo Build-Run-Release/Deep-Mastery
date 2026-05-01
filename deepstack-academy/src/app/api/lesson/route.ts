@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
 
-    const content = await fs.promises.readFile(filePath, "utf-8");
+    const content = await fs.readFile(filePath, "utf-8");
 
     const mdxSource = await serialize(content, {
       mdxOptions: {

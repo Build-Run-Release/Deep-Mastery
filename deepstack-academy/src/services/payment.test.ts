@@ -1,7 +1,7 @@
-import { test, describe, before } from 'node:test';
+import { test, describe, before, afterEach, mock } from 'node:test';
 import assert from 'node:assert';
 import { initializePayment, verifyPayment } from './payment.ts';
-import type { PaymentRequest } from './payment';
+import type { PaymentRequest } from './payment.ts';
 
 describe('Payment Service', () => {
   const mockRequest: PaymentRequest = {
@@ -49,7 +49,7 @@ describe('Payment Service', () => {
         json: () => Promise.resolve({
           status: true,
           data: {
-            authorization_url: 'https://checkout.paystack.com/mock-ref-123',
+            authorization_url: 'https://checkout.paystack.com/mock-url',
             reference: 'mock-ref-123'
           }
         })
@@ -64,14 +64,17 @@ describe('Payment Service', () => {
     assert.ok(response.authorizationUrl.startsWith('https://checkout.paystack.com/'));
   });
 
+  const originalEnv = process.env;
+
   afterEach(() => {
     // Restore env and mocks
-    process.env = originalEnv;
+    process.env = { ...originalEnv };
     mock.restoreAll();
   });
 
   describe('initializePayment', () => {
     test('should return a successful response with correct structure', async () => {
+      process.env.PAYSTACK_SECRET_KEY = "test_secret_key";
       let fetchCallCount = 0;
       mock.method(global, 'fetch', async (url: string, options: any) => {
         fetchCallCount++;
@@ -159,6 +162,7 @@ describe('Payment Service', () => {
 
   describe('verifyPayment', () => {
     test('should return true for a successful payment verification', async () => {
+      process.env.PAYSTACK_SECRET_KEY = "test_secret_key";
       const reference = 'mock-ref-success';
       let fetchCallCount = 0;
 
