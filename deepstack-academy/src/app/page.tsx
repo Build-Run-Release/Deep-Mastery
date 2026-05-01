@@ -12,9 +12,9 @@ export default function Home() {
   const [currentLesson, setCurrentLesson] = useState(courses[0]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [mdxSource, setMdxSource] = useState<any>(null);
-  const [isPremiumUnlocked, setIsPremiumUnlocked] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [forceReload, setForceReload] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -25,6 +25,8 @@ export default function Home() {
         if (res.ok) {
           const data = await res.json();
           if (isMounted) setMdxSource(data.mdxSource);
+        } else if (res.status === 403) {
+          if (isMounted) setMdxSource("PAYWALL");
         } else {
            if (isMounted) setMdxSource(null);
         }
@@ -35,22 +37,12 @@ export default function Home() {
       }
     }
 
-    if (!currentLesson.isPremium || isPremiumUnlocked) {
-      loadContent();
-    } else {
-      const timer = setTimeout(() => {
-        if (isMounted) {
-          setMdxSource(null);
-          setLoading(false);
-        }
-      }, 0);
-      return () => clearTimeout(timer);
-    }
+    loadContent();
 
     return () => {
         isMounted = false;
     }
-  }, [currentLesson, isPremiumUnlocked]);
+  }, [currentLesson, forceReload]);
 
   const handleUnlock = async () => {
     setIsPaying(true);
@@ -83,7 +75,7 @@ export default function Home() {
               const verifyData = await verifyRes.json();
 
               if (verifyData.verified) {
-                  setIsPremiumUnlocked(true);
+                  setForceReload(prev => prev + 1);
               }
           }, 10000); // 10s wait for simulation purposes, in a real app this would use webhooks or polling
       }
@@ -108,7 +100,10 @@ export default function Home() {
         <div className="space-y-3">
           {courses.map((course, index) => {
             const isActive = currentLesson.id === course.id;
-            const isLocked = course.isPremium && !isPremiumUnlocked;
+            // The module is verified as locked if we have explicitly received a PAYWALL error for it.
+            // Since we don't have a user state endpoint, we'll tentatively show it as unlocked if it's the current lesson and not showing a paywall,
+            // but normally you would use the result of a `/api/user/me` endpoint.
+            const isLocked = course.isPremium && (isActive ? mdxSource === "PAYWALL" : forceReload === 0);
 
             return (
               <motion.button
@@ -148,7 +143,7 @@ export default function Home() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto relative scroll-smooth bg-[url('/grid.svg')] bg-center bg-repeat" style={{ backgroundSize: '40px 40px' }}>
         <AnimatePresence mode="wait">
-          {currentLesson.isPremium && !isPremiumUnlocked ? (
+          {mdxSource === "PAYWALL" && !loading ? (
             <motion.div
               key="paywall"
               initial={{ opacity: 0, y: 20 }}

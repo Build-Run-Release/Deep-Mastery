@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { serialize } from "next-mdx-remote/serialize";
 import remarkGfm from "remark-gfm";
+import { courses } from "@/lib/courses";
+import { verifySession } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -16,6 +18,18 @@ export async function GET(request: NextRequest) {
   // Ensure the requested file only contains word characters, numbers, dashes, and the .mdx extension
   if (!/^[a-zA-Z0-9-]+\.mdx$/.test(file)) {
       return NextResponse.json({ error: "Invalid file format requested." }, { status: 400 });
+  }
+
+  // Security: Enforce Paywall server-side
+  const course = courses.find(c => c.file === file);
+  if (!course) {
+     return NextResponse.json({ error: "Course not found." }, { status: 404 });
+  }
+  if (course.isPremium) {
+     const hasPremiumAccess = await verifySession();
+     if (!hasPremiumAccess) {
+         return NextResponse.json({ error: "Premium access required." }, { status: 403 });
+     }
   }
 
   try {

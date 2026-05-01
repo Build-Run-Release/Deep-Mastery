@@ -1,4 +1,4 @@
-import { test, describe } from 'node:test';
+import { test, describe, mock, afterEach } from 'node:test';
 import assert from 'node:assert';
 import { initializePayment, verifyPayment } from './payment.ts';
 import type { PaymentRequest } from './payment.ts';
@@ -11,7 +11,25 @@ describe('Payment Service', () => {
     planId: 'premium-plan'
   };
 
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
   test('initializePayment should return a successful response with correct structure', async () => {
+    process.env.PAYSTACK_SECRET_KEY = "test";
+
+    mock.method(global, 'fetch', () => {
+      return Promise.resolve({
+        json: () => Promise.resolve({
+          status: true,
+          data: {
+            authorization_url: 'https://checkout.paystack.com/mock-ref-123',
+            reference: 'mock-ref-123'
+          }
+        })
+      });
+    });
+
     const response = await initializePayment(mockRequest);
 
     assert.strictEqual(response.status, true);
@@ -21,6 +39,20 @@ describe('Payment Service', () => {
   });
 
   test('initializePayment should generate unique references', async () => {
+    process.env.PAYSTACK_SECRET_KEY = "test";
+
+    mock.method(global, 'fetch', () => {
+      return Promise.resolve({
+        json: () => Promise.resolve({
+          status: true,
+          data: {
+            authorization_url: `https://checkout.paystack.com/mock-ref-${Math.random()}`,
+            reference: `mock-ref-${Math.random()}`
+          }
+        })
+      });
+    });
+
     const response1 = await initializePayment(mockRequest);
     const response2 = await initializePayment(mockRequest);
 
@@ -28,6 +60,19 @@ describe('Payment Service', () => {
   });
 
   test('verifyPayment should return true for any reference', async () => {
+    process.env.PAYSTACK_SECRET_KEY = "test";
+
+    mock.method(global, 'fetch', () => {
+      return Promise.resolve({
+        json: () => Promise.resolve({
+          status: true,
+          data: {
+            status: "success"
+          }
+        })
+      });
+    });
+
     const reference = 'mock-ref-123456789';
     const result = await verifyPayment(reference);
 

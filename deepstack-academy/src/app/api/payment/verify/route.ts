@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyPayment } from '@/services/payment';
+import { createSession } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
@@ -8,10 +9,14 @@ export async function POST(req: Request) {
 
     const isVerified = await verifyPayment(reference);
 
+    if (isVerified) {
+      await createSession();
+    }
+
     return NextResponse.json({ verified: isVerified });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || 'Payment verification failed' },
+      { error: error instanceof Error ? error.message : 'Payment verification failed' },
       { status: 500 }
     );
   }
