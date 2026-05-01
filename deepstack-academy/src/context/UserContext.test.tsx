@@ -2,18 +2,18 @@ import 'global-jsdom/register';
 import React from 'react';
 import { test, describe, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 
 import { UserProvider, useUser } from './UserContext';
 
 function TestComponent() {
-  const { isAuthenticated, level, xp, login, logout, addXp } = useUser();
+  const { isAuthenticated, user, level, xp, login, logout, addXp } = useUser();
   return (
     <div>
         <div data-testid="auth">{isAuthenticated.toString()}</div>
         <div data-testid="level">{level.toString()}</div>
         <div data-testid="xp">{xp.toString()}</div>
-        <button onClick={login}>Login</button>
+        <button onClick={() => login({ id: '1', name: 'Test', email: 'test@example.com', xp: 150, level: 2, isPremium: false })}>Login</button>
         <button onClick={logout}>Logout</button>
         <button onClick={() => addXp(50)}>Add XP</button>
     </div>
@@ -22,55 +22,99 @@ function TestComponent() {
 
 describe('UserProvider', () => {
     beforeEach(() => {
-        localStorage.clear();
+        globalThis.fetch = async (url: string) => {
+            if (url === '/api/auth/me') {
+                return { json: async () => ({ authenticated: false, user: null }) } as Response;
+            }
+            if (url === '/api/auth/logout') {
+                return { ok: true } as Response;
+            }
+            if (url === '/api/progress/xp') {
+                return { ok: true } as Response;
+            }
+            return { ok: true } as Response;
+        };
     });
 
     afterEach(() => {
         cleanup();
+        globalThis.fetch = undefined as any;
     });
 
-    test('UserProvider defaults', () => {
+    test('UserProvider defaults', async () => {
         render(<UserProvider><TestComponent /></UserProvider>);
-        assert.strictEqual(screen.getByTestId('auth').textContent, 'false');
+        await waitFor(() => {
+             assert.strictEqual(screen.getByTestId('auth').textContent, 'false');
+        });
         assert.strictEqual(screen.getByTestId('level').textContent, '1');
         assert.strictEqual(screen.getByTestId('xp').textContent, '0');
     });
 
-    test('UserProvider loads from localStorage', () => {
-        localStorage.setItem('auth', 'true');
-        localStorage.setItem('xp', '150');
+    test('UserProvider loads from server', async () => {
+        globalThis.fetch = async (url: string) => {
+             if (url === '/api/auth/me') {
+                 return { json: async () => ({ authenticated: true, user: { id: '1', name: 'Test', email: 'test@example.com', xp: 150, level: 2, isPremium: false } }) } as Response;
+             }
+             return { ok: true } as Response;
+        };
         render(<UserProvider><TestComponent /></UserProvider>);
-        assert.strictEqual(screen.getByTestId('auth').textContent, 'true');
+        await waitFor(() => {
+            assert.strictEqual(screen.getByTestId('auth').textContent, 'true');
+        });
         assert.strictEqual(screen.getByTestId('level').textContent, '2');
         assert.strictEqual(screen.getByTestId('xp').textContent, '150');
     });
 
-    test('UserProvider login', () => {
+    test('UserProvider login', async () => {
         render(<UserProvider><TestComponent /></UserProvider>);
         fireEvent.click(screen.getByText('Login'));
-        assert.strictEqual(screen.getByTestId('auth').textContent, 'true');
-        assert.strictEqual(localStorage.getItem('auth'), 'true');
+        await waitFor(() => {
+             assert.strictEqual(screen.getByTestId('auth').textContent, 'true');
+             assert.strictEqual(screen.getByTestId('level').textContent, '2');
+             assert.strictEqual(screen.getByTestId('xp').textContent, '150');
+        });
     });
 
-    test('UserProvider logout', () => {
-        localStorage.setItem('auth', 'true');
+    test('UserProvider logout', async () => {
+        globalThis.fetch = async (url: string) => {
+             if (url === '/api/auth/me') {
+                 return { json: async () => ({ authenticated: true, user: { id: '1', name: 'Test', email: 'test@example.com', xp: 150, level: 2, isPremium: false } }) } as Response;
+             }
+             if (url === '/api/auth/logout') {
+                 return { ok: true } as Response;
+             }
+             return { ok: true } as Response;
+        };
         render(<UserProvider><TestComponent /></UserProvider>);
+        await waitFor(() => {
+             assert.strictEqual(screen.getByTestId('auth').textContent, 'true');
+        });
         fireEvent.click(screen.getByText('Logout'));
-        assert.strictEqual(screen.getByTestId('auth').textContent, 'false');
-        assert.strictEqual(localStorage.getItem('auth'), null);
+        await waitFor(() => {
+             assert.strictEqual(screen.getByTestId('auth').textContent, 'false');
+        });
     });
 
-    test('UserProvider addXp', () => {
+    test('UserProvider addXp', async () => {
+        globalThis.fetch = async (url: string) => {
+             if (url === '/api/auth/me') {
+                 return { json: async () => ({ authenticated: true, user: { id: '1', name: 'Test', email: 'test@example.com', xp: 150, level: 2, isPremium: false } }) } as Response;
+             }
+             if (url === '/api/progress/xp') {
+                 return { ok: true } as Response;
+             }
+             return { ok: true } as Response;
+        };
         render(<UserProvider><TestComponent /></UserProvider>);
-        fireEvent.click(screen.getByText('Add XP'));
-        assert.strictEqual(screen.getByTestId('xp').textContent, '50');
-        assert.strictEqual(screen.getByTestId('level').textContent, '1');
-        assert.strictEqual(localStorage.getItem('xp'), '50');
+        await waitFor(() => {
+             assert.strictEqual(screen.getByTestId('xp').textContent, '150');
+        });
 
         fireEvent.click(screen.getByText('Add XP'));
-        assert.strictEqual(screen.getByTestId('xp').textContent, '100');
-        assert.strictEqual(screen.getByTestId('level').textContent, '2');
-        assert.strictEqual(localStorage.getItem('xp'), '100');
+        await waitFor(() => {
+             assert.strictEqual(screen.getByTestId('xp').textContent, '200');
+        });
+        assert.strictEqual(screen.getByTestId('level').textContent, '3');
     });
 });
 

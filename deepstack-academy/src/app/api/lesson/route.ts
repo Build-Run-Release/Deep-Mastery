@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+import { promises as fs } from "fs";
 import path from "path";
 import { serialize } from "next-mdx-remote/serialize";
 import remarkGfm from "remark-gfm";
+import { courses } from "@/lib/courses";
+import { getSession } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -13,23 +15,29 @@ export async function GET(request: NextRequest) {
   }
 
   // Security: Prevent Path Traversal (LFI)
-  // Ensure the requested file only contains word characters, numbers, dashes, and the .mdx extension
   if (!/^[a-zA-Z0-9-]+\.mdx$/.test(file)) {
       return NextResponse.json({ error: "Invalid file format requested." }, { status: 400 });
   }
 
+  // Security: Missing Authorization Check
+  const course = courses.find((c) => c.file === file);
+  if (course && course.isPremium) {
+    const session = await getSession();
+    if (!session.premiumUnlocked) {
+      return NextResponse.json({ error: "Unauthorized access to premium content" }, { status: 401 });
+    }
+  }
+
   try {
     const filePath = path.join(process.cwd(), "src/content", file);
-
-    // Extra security check to ensure the resolved path remains inside src/content
     const contentDir = path.join(process.cwd(), "src/content");
+
     if (!filePath.startsWith(contentDir)) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
 
     const content = await fs.promises.readFile(filePath, "utf-8");
 
-    // Serialize MDX on the server side
     const mdxSource = await serialize(content, {
       mdxOptions: {
         remarkPlugins: [remarkGfm],

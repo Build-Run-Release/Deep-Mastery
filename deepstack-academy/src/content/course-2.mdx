@@ -1,0 +1,50 @@
+# JavaScript Mastery (The Engine)
+
+Welcome to **Phase 2**, the most critical course in DeepStack. Most full-stack errors stem from a poor understanding of core JavaScript.
+
+## Core Mechanics
+
+### Execution Context & Call Stack
+
+JavaScript runs in two phases: the **Memory Creation Phase** and the **Code Execution Phase**. Understanding the **Call Stack** is how you prevent infinite loops and stack overflows.
+
+### Lexical Scoping & Closures
+
+A **closure** is created when a function remembers the variables from its lexical scope, even after the outer function has finished executing.
+
+```javascript
+function createCounter() {
+  let count = 0; // Private variable
+  return function() {
+    count++;
+    return count;
+  };
+}
+
+const counter = createCounter();
+console.log(counter()); // 1
+console.log(counter()); // 2
+```
+
+<CodeEditor challengeId="js-closures" initialCode="function secretKeyGenerator() {\n  // Write a closure that returns a unique incrementing ID\n}" />
+
+## Advanced Concepts
+
+### Prototypes & The `this` Keyword
+
+`this` does not point to the function itself. It points to the object that is *calling* the function. Arrow functions, however, do not have their own `this`; they inherit it from their enclosing lexical scope.
+
+## Asynchronous JavaScript
+
+### The Event Loop & Microtasks
+
+JavaScript is single-threaded but asynchronous. How? Through the **Event Loop**.
+
+1. **Call Stack**: Executes synchronous code.
+2. **Web APIs**: Handles `setTimeout`, fetch, etc., offloading work to the browser.
+3. **Microtask Queue**: Promises (`.then`, `await`). Has higher priority.
+4. **Macrotask Queue**: `setTimeout`, `setInterval`.
+
+<CodeEditor challengeId="js-async" initialCode="console.log('1');\nsetTimeout(() => console.log('2'), 0);\nPromise.resolve().then(() => console.log('3'));\nconsole.log('4');\n// Predict the output order!" />
+
+<CompleteButton lessonId="lesson_2" xpReward={100} />
