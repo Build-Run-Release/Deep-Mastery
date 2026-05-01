@@ -1,7 +1,7 @@
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert';
 import { initializePayment, verifyPayment } from './payment.ts';
-import type { PaymentRequest } from './payment.ts';
+import type { PaymentRequest } from './payment';
 
 describe('Payment Service', () => {
   const mockRequest: PaymentRequest = {
