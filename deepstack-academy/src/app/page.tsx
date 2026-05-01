@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { courses } from "@/lib/courses";
 import { CodeEditor } from "@/components/CodeEditor";
 import { CompleteButton } from "@/components/CompleteButton";
@@ -16,17 +16,26 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [forceReload, setForceReload] = useState(0);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cache = useRef<Map<string, any>>(new Map());
+
   useEffect(() => {
     let isMounted = true;
     async function loadContent() {
       setLoading(true);
       try {
+        if (cache.current.has(currentLesson.file)) {
+          if (isMounted) setMdxSource(cache.current.get(currentLesson.file));
+          return;
+        }
+
         const res = await fetch(`/api/lesson?file=${currentLesson.file}`);
         if (res.ok) {
           const data = await res.json();
-          if (isMounted) setMdxSource(data.mdxSource);
-        } else if (res.status === 403) {
-          if (isMounted) setMdxSource("PAYWALL");
+          if (isMounted) {
+            cache.current.set(currentLesson.file, data.mdxSource);
+            setMdxSource(data.mdxSource);
+          }
         } else {
            if (isMounted) setMdxSource(null);
         }
