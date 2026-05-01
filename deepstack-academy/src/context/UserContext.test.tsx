@@ -1,12 +1,35 @@
-import { test, describe } from 'node:test';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 import { renderHook } from '@testing-library/react';
 import { useUser } from './UserContext.tsx';
 
 import { JSDOM } from 'jsdom';
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = dom.window as any;
-global.document = dom.window.document;
+
+let dom: JSDOM;
+const previousWindow = globalThis.window;
+const previousDocument = globalThis.document;
+
+before(() => {
+  dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+  globalThis.window = dom.window as any;
+  globalThis.document = dom.window.document;
+});
+
+after(() => {
+  dom.window.close();
+
+  if (previousWindow === undefined) {
+    delete globalThis.window;
+  } else {
+    globalThis.window = previousWindow;
+  }
+
+  if (previousDocument === undefined) {
+    delete globalThis.document;
+  } else {
+    globalThis.document = previousDocument;
+  }
+});
 
 describe('useUser hook', () => {
   test('throws an error when used outside of UserProvider', () => {
