@@ -8,7 +8,9 @@ const tsPattern = args.length > 0 ? args : ['src/**/*.test.ts'];
 
 const tsResult = spawnSync('node', ['--test', '--experimental-strip-types', ...tsPattern], { stdio: 'inherit' });
 
-const tsxFiles = globSync('src/**/*.test.tsx');
+const tsxFiles = args.length > 0
+  ? [...new Set(args.flatMap((pattern) => globSync(pattern)).filter((file) => file.endsWith('.test.tsx')))]
+  : globSync('src/**/*.test.tsx');
 
 let tsxStatus = 0;
 if (tsxFiles.length > 0) {
