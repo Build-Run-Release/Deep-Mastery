@@ -6,9 +6,9 @@ interface UserContextType {
   isAuthenticated: boolean;
   level: number;
   xp: number;
-  login: () => void;
-  logout: () => void;
-  addXp: (amount: number) => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  addXp: (amount: number) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -19,35 +19,78 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [xp, setXp] = useState(0);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const auth = localStorage.getItem("auth");
-      if (auth) {
-        setIsAuthenticated(true);
-        const savedXp = parseInt(localStorage.getItem("xp") || "0", 10);
-        setXp(savedXp);
-        setLevel(Math.floor(savedXp / 100) + 1);
+    let isMounted = true;
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setIsAuthenticated(data.isAuthenticated);
+            if (data.isAuthenticated) {
+              setXp(data.xp);
+              setLevel(data.level);
+            }
+          }
+        } else {
+            if (isMounted) {
+                setIsAuthenticated(false);
+            }
+        }
+      } catch (error) {
+        console.error("Auth check failed", error);
       }
     };
     checkAuth();
+    return () => {
+        isMounted = false;
+    }
   }, []);
 
-  const login = () => {
-    setIsAuthenticated(true);
-    localStorage.setItem("auth", "true");
+  const login = async () => {
+    try {
+      const res = await fetch("/api/auth/login", { method: "POST" });
+      if (res.ok) {
+        setIsAuthenticated(true);
+        // We can refetch /me or just set default
+        const meRes = await fetch("/api/auth/me");
+        if (meRes.ok) {
+            const data = await meRes.json();
+            setXp(data.xp);
+            setLevel(data.level);
+        }
+      }
+    } catch (error) {
+      console.error("Login failed", error);
+    }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem("auth");
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      setIsAuthenticated(false);
+      setXp(0);
+      setLevel(1);
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
-  const addXp = (amount: number) => {
-    setXp((prev) => {
-      const newXp = prev + amount;
-      localStorage.setItem("xp", newXp.toString());
-      setLevel(Math.floor(newXp / 100) + 1);
-      return newXp;
-    });
+  const addXp = async (amount: number) => {
+    try {
+      const res = await fetch("/api/auth/xp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setXp(data.xp);
+        setLevel(data.level);
+      }
+    } catch (error) {
+      console.error("Failed to add XP", error);
+    }
   };
 
   return (

@@ -9,9 +9,9 @@ export async function POST(req: Request) {
     const isVerified = await verifyPayment(reference);
 
     return NextResponse.json({ verified: isVerified });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || 'Payment verification failed' },
+      { error: (error as Error).message || 'Payment verification failed' },
       { status: 500 }
     );
   }

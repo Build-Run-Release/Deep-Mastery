@@ -10,9 +10,9 @@ export default function SignUp() {
   const { login } = useUser();
   const router = useRouter();
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    login();
+    await login();
     router.push("/");
   };
 

@@ -43,7 +43,7 @@ export function TopBar() {
               </div>
             </button>
             <button
-              onClick={logout}
+              onClick={async () => await logout()}
               className="text-gray-500 hover:text-rose-500 dark:text-gray-400 dark:hover:text-rose-400 transition-colors p-2 rounded-full hover:bg-rose-50 dark:hover:bg-rose-500/10"
               title="Sign Out"
             >

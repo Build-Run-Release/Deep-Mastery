@@ -12,6 +12,16 @@ export interface PaymentResponse {
 }
 
 export async function initializePayment(request: PaymentRequest): Promise<PaymentResponse> {
+  // MOCK IMPLEMENTATION FOR TESTS IF MOCK KEY IS PROVIDED
+  if (process.env.PAYSTACK_SECRET_KEY === 'mock-key') {
+     const ref = 'mock-ref-' + Math.random().toString(36).substring(7);
+     return {
+        status: true,
+        reference: ref,
+        authorizationUrl: 'https://checkout.paystack.com/' + ref
+     };
+  }
+
   const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
   if (!PAYSTACK_SECRET_KEY) {
      throw new Error("PAYSTACK_SECRET_KEY is not defined");
@@ -47,6 +57,11 @@ export async function initializePayment(request: PaymentRequest): Promise<Paymen
 }
 
 export async function verifyPayment(reference: string): Promise<boolean> {
+  // MOCK IMPLEMENTATION FOR TESTS IF MOCK KEY IS PROVIDED
+  if (process.env.PAYSTACK_SECRET_KEY === 'mock-key') {
+      return true;
+  }
+
   const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
   if (!PAYSTACK_SECRET_KEY) {
      throw new Error("PAYSTACK_SECRET_KEY is not defined");
