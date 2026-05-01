@@ -42,6 +42,20 @@ describe('Payment Service', () => {
   });
 
   test('initializePayment should return a successful response with correct structure', async () => {
+    process.env.PAYSTACK_SECRET_KEY = "test";
+
+    mock.method(global, 'fetch', () => {
+      return Promise.resolve({
+        json: () => Promise.resolve({
+          status: true,
+          data: {
+            authorization_url: 'https://checkout.paystack.com/mock-ref-123',
+            reference: 'mock-ref-123'
+          }
+        })
+      });
+    });
+
     const response = await initializePayment(mockRequest);
 
     assert.strictEqual(response.status, true);
