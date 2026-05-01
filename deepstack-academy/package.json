@@ -16,6 +16,8 @@
     "lucide-react": "^1.14.0",
     "next": "16.2.4",
     "next-mdx-remote": "^6.0.0",
+    "paystack": "^2.0.1",
+    "paystack-api": "^2.0.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "remark-gfm": "^4.0.1"

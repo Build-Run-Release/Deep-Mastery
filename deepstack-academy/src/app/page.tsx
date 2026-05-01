@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { courses } from "@/lib/courses";
-import { initializePayment, verifyPayment } from "@/services/payment";
 import { CodeEditor } from "@/components/CodeEditor";
 import { CompleteButton } from "@/components/CompleteButton";
 import { MDXRemote } from "next-mdx-remote";
@@ -56,18 +55,37 @@ export default function Home() {
   const handleUnlock = async () => {
     setIsPaying(true);
     try {
-      const initRes = await initializePayment({
-        email: "student@example.com",
-        amount: 1500000,
-        userId: "user_123",
-        planId: "premium_fullstack",
+      const initRes = await fetch('/api/payment/init', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: "student@example.com",
+            amount: 1500000,
+            userId: "user_123",
+            planId: "premium_fullstack",
+          })
       });
 
-      if (initRes.status) {
-        const verified = await verifyPayment(initRes.reference);
-        if (verified) {
-          setIsPremiumUnlocked(true);
-        }
+      const initData = await initRes.json();
+
+      if (initData.status && initData.authorizationUrl) {
+          // Open authorization url in new tab
+          window.open(initData.authorizationUrl, '_blank');
+
+          // Poll for verification or provide a button for the user to confirm they paid
+          // For now, we'll simulate waiting for them to return and verify
+          setTimeout(async () => {
+              const verifyRes = await fetch('/api/payment/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ reference: initData.reference })
+              });
+              const verifyData = await verifyRes.json();
+
+              if (verifyData.verified) {
+                  setIsPremiumUnlocked(true);
+              }
+          }, 10000); // 10s wait for simulation purposes, in a real app this would use webhooks or polling
       }
     } catch (e) {
       console.error("Payment failed", e);
@@ -159,7 +177,7 @@ export default function Home() {
                   {isPaying ? "Securely Processing..." : "Unlock Now (₦15,000)"}
                 </motion.button>
                 <p className="mt-4 text-xs text-gray-500 flex items-center justify-center gap-2">
-                  <Lock className="w-3 h-3" /> Secured by Mock Paystack Integration
+                  <Lock className="w-3 h-3" /> Secured by Paystack Integration
                 </p>
               </div>
             </motion.div>

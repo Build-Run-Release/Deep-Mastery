@@ -1,5 +1,3 @@
-// Mock Paystack integration for Phase 1 (Nigerian Market)
-
 export interface PaymentRequest {
   email: string;
   amount: number; // in kobo (Naira * 100)
@@ -13,34 +11,59 @@ export interface PaymentResponse {
   reference: string;
 }
 
-/**
- * Mocks initializing a transaction with Paystack.
- */
 export async function initializePayment(request: PaymentRequest): Promise<PaymentResponse> {
-  console.log(`[Mock Paystack] Initializing payment for ${request.email} (${request.amount} kobo)`);
+  const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+  if (!PAYSTACK_SECRET_KEY) {
+     throw new Error("PAYSTACK_SECRET_KEY is not defined");
+  }
 
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const response = await fetch("https://api.paystack.co/transaction/initialize", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: request.email,
+      amount: request.amount,
+      metadata: {
+         userId: request.userId,
+         planId: request.planId
+      }
+    }),
+  });
 
-  const mockReference = `mock-ref-${Date.now()}`;
+  const data = await response.json();
+
+  if (!data.status) {
+    throw new Error(data.message || "Failed to initialize payment");
+  }
 
   return {
-    status: true,
-    authorizationUrl: `https://checkout.paystack.com/${mockReference}`,
-    reference: mockReference,
+    status: data.status,
+    authorizationUrl: data.data.authorization_url,
+    reference: data.data.reference,
   };
 }
 
-/**
- * Mocks verifying a transaction with Paystack.
- */
 export async function verifyPayment(reference: string): Promise<boolean> {
-  console.log(`[Mock Paystack] Verifying payment reference: ${reference}`);
+  const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+  if (!PAYSTACK_SECRET_KEY) {
+     throw new Error("PAYSTACK_SECRET_KEY is not defined");
+  }
 
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+    },
+  });
 
-  // In a real app, this would check with the Paystack API
-  // For the mock, we assume the payment was successful
-  return true;
+  const data = await response.json();
+
+  if (data.status && data.data && data.data.status === "success") {
+      return true;
+  }
+
+  return false;
 }
