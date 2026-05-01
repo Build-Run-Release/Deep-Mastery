@@ -1,30 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { courses } from "@/lib/courses";
 import { CodeEditor } from "@/components/CodeEditor";
 import { CompleteButton } from "@/components/CompleteButton";
 import { MDXRemote } from "next-mdx-remote";
 import { BookOpen, Lock, Unlock, PlayCircle, Code } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
+import Script from "next/script";
 
 export default function Home() {
+  const router = useRouter();
   const [currentLesson, setCurrentLesson] = useState(courses[0]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { user, isPremiumUnlocked, unlockPremium } = useUser();
   const [mdxSource, setMdxSource] = useState<any>(null);
-  const [isPremiumUnlocked, setIsPremiumUnlocked] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [forceReload, setForceReload] = useState(0);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cache = useRef<Map<string, any>>(new Map());
 
   useEffect(() => {
     let isMounted = true;
     async function loadContent() {
       setLoading(true);
       try {
+        if (cache.current.has(currentLesson.file)) {
+          if (isMounted) setMdxSource(cache.current.get(currentLesson.file));
+          return;
+        }
+
         const res = await fetch(`/api/lesson?file=${currentLesson.file}`);
         if (res.ok) {
           const data = await res.json();
-          if (isMounted) setMdxSource(data.mdxSource);
+          if (isMounted) {
+            cache.current.set(currentLesson.file, data.mdxSource);
+            setMdxSource(data.mdxSource);
+          }
         } else {
            if (isMounted) setMdxSource(null);
         }
@@ -35,61 +51,59 @@ export default function Home() {
       }
     }
 
-    if (!currentLesson.isPremium || isPremiumUnlocked) {
-      loadContent();
-    } else {
-      const timer = setTimeout(() => {
-        if (isMounted) {
-          setMdxSource(null);
-          setLoading(false);
-        }
-      }, 0);
-      return () => clearTimeout(timer);
-    }
+    loadContent();
 
     return () => {
         isMounted = false;
     }
-  }, [currentLesson, isPremiumUnlocked]);
+  }, [currentLesson, forceReload]);
 
   const handleUnlock = async () => {
+    if (!user) {
+      router.push("/signin");
+      return;
+    }
     setIsPaying(true);
     try {
-      const initRes = await fetch('/api/payment/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: "student@example.com",
-            amount: 1500000,
-            userId: "user_123",
-            planId: "premium_fullstack",
-          })
-      });
-
-      const initData = await initRes.json();
-
-      if (initData.status && initData.authorizationUrl) {
-          // Open authorization url in new tab
-          window.open(initData.authorizationUrl, '_blank');
-
-          // Poll for verification or provide a button for the user to confirm they paid
-          // For now, we'll simulate waiting for them to return and verify
-          setTimeout(async () => {
+      if (typeof (window as any).PaystackPop !== 'undefined') {
+        const paystack = new (window as any).PaystackPop();
+        paystack.newTransaction({
+          key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_mock_key",
+          email: user.email,
+          amount: 1500000,
+          reference: `deepstack_${Date.now()}_${Math.floor(Math.random() * 1000000)}`,
+          onSuccess: async (transaction: any) => {
+            setIsPaying(true);
+            try {
               const verifyRes = await fetch('/api/payment/verify', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ reference: initData.reference })
+                  body: JSON.stringify({ reference: transaction.reference, userId: user.id })
               });
               const verifyData = await verifyRes.json();
 
               if (verifyData.verified) {
-                  setIsPremiumUnlocked(true);
+                  unlockPremium();
               }
-          }, 10000); // 10s wait for simulation purposes, in a real app this would use webhooks or polling
+            } catch (err) {
+              console.error("Verification error", err);
+            } finally {
+              setIsPaying(false);
+            }
+          },
+          onCancel: () => {
+            setIsPaying(false);
+          }
+        });
+      } else {
+        // Mock fallback if Paystack script is unavailable
+        setTimeout(() => {
+          unlockPremium();
+          setIsPaying(false);
+        }, 1500);
       }
     } catch (e) {
       console.error("Payment failed", e);
-    } finally {
       setIsPaying(false);
     }
   };
@@ -98,6 +112,7 @@ export default function Home() {
 
   return (
     <div className="flex bg-gray-50 dark:bg-[#0B0F19] transition-colors duration-500" style={{ height: 'calc(100vh - 72px)' }}>
+      <Script src="https://js.paystack.co/v2/inline.js" strategy="lazyOnload" />
       {/* Sidebar - Glassmorphism */}
       <div className="w-80 bg-white/70 dark:bg-gray-900/50 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 p-6 overflow-y-auto shrink-0 shadow-lg z-10 flex flex-col gap-6">
         <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400">
@@ -108,7 +123,10 @@ export default function Home() {
         <div className="space-y-3">
           {courses.map((course, index) => {
             const isActive = currentLesson.id === course.id;
-            const isLocked = course.isPremium && !isPremiumUnlocked;
+            // The module is verified as locked if we have explicitly received a PAYWALL error for it.
+            // Since we don't have a user state endpoint, we'll tentatively show it as unlocked if it's the current lesson and not showing a paywall,
+            // but normally you would use the result of a `/api/user/me` endpoint.
+            const isLocked = course.isPremium && (isActive ? mdxSource === "PAYWALL" : forceReload === 0);
 
             return (
               <motion.button
@@ -148,7 +166,7 @@ export default function Home() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto relative scroll-smooth bg-[url('/grid.svg')] bg-center bg-repeat" style={{ backgroundSize: '40px 40px' }}>
         <AnimatePresence mode="wait">
-          {currentLesson.isPremium && !isPremiumUnlocked ? (
+          {mdxSource === "PAYWALL" && !loading ? (
             <motion.div
               key="paywall"
               initial={{ opacity: 0, y: 20 }}

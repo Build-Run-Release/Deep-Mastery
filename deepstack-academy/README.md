@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DeepStack Academy
 
-## Getting Started
+An exquisite, gamified web development learning platform, deeply integrated from frontend to backend. It features authentic course content, interactive IDE execution, user progression (XP/Leveling), and a mock Paystack integration for a secure paywall.
 
-First, run the development server:
+## Prerequisites
+- Node.js (v18 or higher)
+- PostgreSQL (or an equivalent database supported by Prisma)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup Instructions
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Clone the repository and install dependencies:**
+   ```bash
+   npm install
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Environment Variables:**
+   Create a `.env` file in the root of your project and configure the following variables:
+   ```env
+   # Database connection string (PostgreSQL example)
+   DATABASE_URL="postgresql://user:password@localhost:5432/deepstack_db?schema=public"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   # Secret for signing JWTs
+   JWT_SECRET="super-secret-key-for-deepstack-dev"
 
-## Learn More
+   # Paystack secret key (for monetization)
+   PAYSTACK_SECRET_KEY="sk_test_your_paystack_secret_key"
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. **Database Migration:**
+   Push the schema to your database to create the `User`, `Subscription`, and `Progress` tables.
+   ```bash
+   npx prisma db push
+   # or npx prisma migrate dev --name init
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **Generate Prisma Client:**
+   ```bash
+   npx prisma generate
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. **Start the Development Server:**
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+6. **Access the Application:**
+   Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Features & Highlights
+- **Interactive MDX Modules:** Courses are rendered natively via `next-mdx-remote` with embedded `<CodeEditor />` instances utilizing `@monaco-editor/react`.
+- **Backend Authentication:** Fully custom JWT authentication via `HttpOnly` cookies.
+- **Gamification:** Users earn XP and level up for completing modules. This state is synchronized securely with a PostgreSQL database via Prisma ORM.
+- **Monetization:** Paywall integration for premium modules with `paystack` API integration verification.
+- **Exquisite UI:** Built using `framer-motion` for fluid split-screen transitions, glassmorphism aesthetics, and `Tailwind CSS`.

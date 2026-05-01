@@ -2,99 +2,113 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  xp: number;
+  level: number;
+  isPremium: boolean;
+}
+
 interface UserContextType {
   isAuthenticated: boolean;
+  user: User | null;
   level: number;
   xp: number;
-  login: () => Promise<void>;
-  logout: () => Promise<void>;
+  isPremiumUnlocked: boolean;
+  login: (userData: User) => void;
+  logout: () => void;
   addXp: (amount: number) => Promise<void>;
+  checkAuth: () => Promise<void>;
+  unlockPremium: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [level, setLevel] = useState(1);
   const [xp, setXp] = useState(0);
+  const [isPremiumUnlocked, setIsPremiumUnlocked] = useState(false);
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.authenticated && data.user) {
+        setIsAuthenticated(true);
+        setUser(data.user);
+        setXp(data.user.xp);
+        setLevel(data.user.level);
+        setIsPremiumUnlocked(data.user.isPremium);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+        setXp(0);
+        setLevel(1);
+        setIsPremiumUnlocked(false);
+      }
+    } catch (e) {
+      console.error("Auth check failed", e);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setIsAuthenticated(data.isAuthenticated);
-            if (data.isAuthenticated) {
-              setXp(data.xp);
-              setLevel(data.level);
-            }
-          }
-        } else {
-            if (isMounted) {
-                setIsAuthenticated(false);
-            }
-        }
-      } catch (error) {
-        console.error("Auth check failed", error);
-      }
-    };
     checkAuth();
     return () => {
         isMounted = false;
     }
   }, []);
 
-  const login = async () => {
-    try {
-      const res = await fetch("/api/auth/login", { method: "POST" });
-      if (res.ok) {
-        setIsAuthenticated(true);
-        // We can refetch /me or just set default
-        const meRes = await fetch("/api/auth/me");
-        if (meRes.ok) {
-            const data = await meRes.json();
-            setXp(data.xp);
-            setLevel(data.level);
-        }
-      }
-    } catch (error) {
-      console.error("Login failed", error);
-    }
+  const login = (userData: User) => {
+    setIsAuthenticated(true);
+    setUser(userData);
+    setXp(userData.xp);
+    setLevel(userData.level);
+    setIsPremiumUnlocked(userData.isPremium);
   };
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch('/api/auth/logout', { method: 'POST' });
       setIsAuthenticated(false);
+      setUser(null);
       setXp(0);
       setLevel(1);
-    } catch (error) {
-      console.error("Logout failed", error);
+      setIsPremiumUnlocked(false);
+    } catch (e) {
+      console.error("Logout failed", e);
     }
   };
 
   const addXp = async (amount: number) => {
+    if (!isAuthenticated) return;
+
+    setXp((prev) => {
+      const newXp = prev + amount;
+      setLevel(Math.floor(newXp / 100) + 1);
+      return newXp;
+    });
+
     try {
-      const res = await fetch("/api/auth/xp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
+      await fetch('/api/progress/xp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
       });
-      if (res.ok) {
-        const data = await res.json();
-        setXp(data.xp);
-        setLevel(data.level);
-      }
-    } catch (error) {
-      console.error("Failed to add XP", error);
+    } catch (e) {
+      console.error("Failed to update XP on server", e);
     }
   };
 
+  const unlockPremium = () => {
+    setIsPremiumUnlocked(true);
+  };
+
   return (
-    <UserContext.Provider value={{ isAuthenticated, level, xp, login, logout, addXp }}>
+    <UserContext.Provider value={{ isAuthenticated, user, level, xp, isPremiumUnlocked, login, logout, addXp, checkAuth, unlockPremium }}>
       {children}
     </UserContext.Provider>
   );

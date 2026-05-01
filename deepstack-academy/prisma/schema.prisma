@@ -7,13 +7,17 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
+  password      String
   name          String?
   role          String         @default("student") // "student" or "admin"
+  xp            Int            @default(0)
+  level         Int            @default(1)
   createdAt     DateTime       @default(now())
   subscriptions Subscription[]
   progress      Progress[]

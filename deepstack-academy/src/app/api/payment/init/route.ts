@@ -15,8 +15,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(paymentResponse);
   } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Payment initialization failed';
     return NextResponse.json(
-      { error: (error as Error).message || 'Payment initialization failed' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

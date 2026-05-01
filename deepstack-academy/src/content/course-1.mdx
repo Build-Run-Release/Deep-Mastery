@@ -1,0 +1,56 @@
+# The Modern UI & Foundation
+
+Welcome to **Phase 1: The Modern UI & Foundation**. In this course, you will not just memorize tags. You will understand how browsers render interfaces, build a semantic foundation, and craft exquisite layouts.
+
+## HTML5 & Accessibility (A11y)
+
+### Semantic HTML & The DOM Tree
+
+When a browser receives HTML, it constructs the **Document Object Model (DOM)** tree. Using semantic tags (`<header>`, `<main>`, `<article>`, `<footer>`) isn't just about clean code—it's about telling the browser and assistive technologies what the content *means*.
+
+```html
+<!-- Bad Practice (Div Soup) -->
+<div class="header">
+  <div class="nav">...</div>
+</div>
+
+<!-- Good Practice -->
+<header>
+  <nav aria-label="Main Navigation">...</nav>
+</header>
+```
+
+### ARIA & Accessibility from Day One
+Accessibility is not an afterthought. You must consider ARIA roles, contrast ratios, and keyboard navigation.
+
+<CodeEditor challengeId="html-1" initialCode="<button>Click me</button>" />
+
+## CSS3 & Responsive Design
+
+### The CSS Box Model
+
+Every element in CSS is a box. Understanding `margin`, `border`, `padding`, and `content` is essential to mastering layouts.
+
+### Flexbox & CSS Grid
+
+<div className="grid grid-cols-2 gap-4 my-8">
+  <div className="bg-blue-100 p-4 rounded-xl">
+    <h4 className="font-bold">Flexbox</h4>
+    <p>Best for 1-dimensional layouts (rows OR columns). Perfect for alignment and distributing space dynamically.</p>
+  </div>
+  <div className="bg-purple-100 p-4 rounded-xl">
+    <h4 className="font-bold">CSS Grid</h4>
+    <p>Best for 2-dimensional layouts (rows AND columns). Ideal for complex overall page structures.</p>
+  </div>
+</div>
+
+<CodeEditor challengeId="css-1" initialCode=".container {\n  display: flex;\n  /* Center the content */\n}" />
+
+## Tailwind CSS
+
+We are moving from raw CSS to a **utility-first** approach. Tailwind CSS allows you to build completely custom designs directly in your markup without leaving your HTML.
+
+### Purging & Optimization
+In production, Tailwind scans your code and purges unused styles, resulting in tiny CSS files.
+
+<CompleteButton lessonId="lesson_1" xpReward={50} />
