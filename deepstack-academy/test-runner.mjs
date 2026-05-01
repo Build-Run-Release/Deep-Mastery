@@ -13,8 +13,8 @@ const tsxFiles = globSync('src/**/*.test.tsx');
 let tsxStatus = 0;
 if (tsxFiles.length > 0) {
   console.log('\nRunning .tsx tests...');
-  // Use shell: true to support Windows environments
-  const tsxResult = spawnSync('npx', ['tsx', '--test', ...tsxFiles], { stdio: 'inherit', shell: true });
+  const npxExecutable = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const tsxResult = spawnSync(npxExecutable, ['--no-install', 'tsx', '--test', ...tsxFiles], { stdio: 'inherit' });
   tsxStatus = tsxResult.status;
 }
 
