@@ -8,13 +8,13 @@ export function getJwtSecret() {
   return secret;
 }
 
-export function signToken(payload: { userId: string, email: string }) {
+export function signToken(payload: { userId: string, email?: string, xp?: number, level?: number }) {
   return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
 }
 
 export function verifyToken(token: string) {
   try {
-    return jwt.verify(token, getJwtSecret()) as { userId: string, email: string };
+    return jwt.verify(token, getJwtSecret()) as { userId: string, email?: string, xp?: number, level?: number };
   } catch (error) {
     return null;
   }

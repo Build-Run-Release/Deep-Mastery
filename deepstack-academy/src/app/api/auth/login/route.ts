@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { signToken } from "@/lib/auth";
+import { signToken } from "@/lib/auth/jwt";
 
 export async function POST() {
   // In a real application, you would verify email/password against the DB here.

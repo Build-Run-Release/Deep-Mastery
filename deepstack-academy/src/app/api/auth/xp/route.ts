@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken, signToken } from "@/lib/auth";
+import { verifyToken, signToken } from "@/lib/auth/jwt";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
@@ -23,7 +23,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    const newXp = payload.xp + amount;
+    const currentXp = payload.xp ?? 0;
+    const newXp = currentXp + amount;
     const newLevel = Math.floor(newXp / 100) + 1;
 
     const newPayload = {
