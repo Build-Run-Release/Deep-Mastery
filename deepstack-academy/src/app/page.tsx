@@ -7,12 +7,15 @@ import { CompleteButton } from "@/components/CompleteButton";
 import { MDXRemote } from "next-mdx-remote";
 import { BookOpen, Lock, Unlock, PlayCircle, Code } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [currentLesson, setCurrentLesson] = useState(courses[0]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { user, isPremiumUnlocked, unlockPremium } = useUser();
   const [mdxSource, setMdxSource] = useState<any>(null);
-  const [isPremiumUnlocked, setIsPremiumUnlocked] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -53,15 +56,19 @@ export default function Home() {
   }, [currentLesson, isPremiumUnlocked]);
 
   const handleUnlock = async () => {
+    if (!user) {
+      router.push("/signin");
+      return;
+    }
     setIsPaying(true);
     try {
       const initRes = await fetch('/api/payment/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: "student@example.com",
+            email: user.email,
             amount: 1500000,
-            userId: "user_123",
+            userId: user.id,
             planId: "premium_fullstack",
           })
       });
@@ -69,23 +76,20 @@ export default function Home() {
       const initData = await initRes.json();
 
       if (initData.status && initData.authorizationUrl) {
-          // Open authorization url in new tab
           window.open(initData.authorizationUrl, '_blank');
 
-          // Poll for verification or provide a button for the user to confirm they paid
-          // For now, we'll simulate waiting for them to return and verify
           setTimeout(async () => {
               const verifyRes = await fetch('/api/payment/verify', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ reference: initData.reference })
+                  body: JSON.stringify({ reference: initData.reference, userId: user.id })
               });
               const verifyData = await verifyRes.json();
 
               if (verifyData.verified) {
-                  setIsPremiumUnlocked(true);
+                  unlockPremium();
               }
-          }, 10000); // 10s wait for simulation purposes, in a real app this would use webhooks or polling
+          }, 10000);
       }
     } catch (e) {
       console.error("Payment failed", e);
