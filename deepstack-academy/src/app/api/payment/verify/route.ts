@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyPayment } from '@/services/payment';
-import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth/jwt';
-import { NextRequest } from 'next/server';
+import { getSession } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,26 +30,16 @@ export async function POST(req: NextRequest) {
     const isVerified = await verifyPayment(reference);
 
     if (isVerified) {
-        // Create or update subscription
-        const expiry = new Date();
-        expiry.setFullYear(expiry.getFullYear() + 1); // 1 year access
-
-        await prisma.subscription.create({
-            data: {
-                userId: userId,
-                plan: "premium_fullstack",
-                status: "active",
-                expiryDate: expiry
-            }
-        });
-
-        return NextResponse.json({ verified: true });
+      const session = await getSession();
+      session.premiumUnlocked = true;
+      await session.save();
     }
 
-    return NextResponse.json({ verified: false });
-  } catch (error: any) {
+    return NextResponse.json({ verified: isVerified });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Payment verification failed';
     return NextResponse.json(
-      { error: error.message || 'Payment verification failed' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

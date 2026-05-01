@@ -3,6 +3,8 @@ import { promises as fs } from "fs";
 import path from "path";
 import { serialize } from "next-mdx-remote/serialize";
 import remarkGfm from "remark-gfm";
+import { courses } from "@/lib/courses";
+import { getSession } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -17,6 +19,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid file format requested." }, { status: 400 });
   }
 
+  // Security: Missing Authorization Check
+  const course = courses.find((c) => c.file === file);
+  if (course && course.isPremium) {
+    const session = await getSession();
+    if (!session.premiumUnlocked) {
+      return NextResponse.json({ error: "Unauthorized access to premium content" }, { status: 401 });
+    }
+  }
+
   try {
     const filePath = path.join(process.cwd(), "src/content", file);
     const contentDir = path.join(process.cwd(), "src/content");
@@ -25,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
 
-    const content = await fs.readFile(filePath, "utf-8");
+    const content = await fs.promises.readFile(filePath, "utf-8");
 
     const mdxSource = await serialize(content, {
       mdxOptions: {
