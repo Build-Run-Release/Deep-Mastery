@@ -1,0 +1,43 @@
+# The Database Layer (MongoDB & NoSQL)
+
+Welcome to **Phase 5**. Data modeling is where most intermediate developers struggle. We will master NoSQL schema design using MongoDB.
+
+## NoSQL Fundamentals
+
+MongoDB stores data in flexible, JSON-like documents, meaning fields can vary from document to document and data structure can be changed over time. Under the hood, data is serialized into **BSON** (Binary JSON) for faster parsing.
+
+### Databases, Collections, and Documents
+
+*   **Database:** The container for collections.
+*   **Collection:** A group of MongoDB documents (similar to a Table in SQL).
+*   **Document:** A set of key-value pairs (similar to a Row in SQL).
+
+## Advanced Mongoose
+
+Mongoose is an Object Data Modeling (ODM) library for MongoDB and Node.js.
+
+### Schema Design: Referencing vs. Embedding
+
+*   **Embedding (Denormalization):** Store related data in the same document. Best for one-to-few relationships and data that is frequently read together.
+*   **Referencing (Normalization):** Store a reference ID to a document in another collection. Best for one-to-many or many-to-many relationships where the array size could grow unbounded.
+
+```javascript
+// Referencing Example
+const PostSchema = new mongoose.Schema({
+  title: String,
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // Reference
+});
+```
+
+### Virtuals & Population
+
+**Virtuals** are document properties that you can get and set but that do not get persisted to MongoDB. They are useful for formatting or combining fields.
+**Population** is the process of automatically replacing the specified paths in the document with document(s) from other collection(s).
+
+### Aggregation Pipelines
+
+The aggregation framework is a powerful tool for processing data records and returning computed results. It operates on a pipeline model (e.g., `$match`, `$group`, `$sort`, `$project`).
+
+<CodeEditor challengeId="mongo-agg" initialCode="// Write an aggregation pipeline to find the total revenue generated per user\nconst pipeline = [\n  { $match: { status: 'completed' } },\n  // Complete the pipeline\n];" />
+
+<CompleteButton lessonId="lesson_5" xpReward={250} />

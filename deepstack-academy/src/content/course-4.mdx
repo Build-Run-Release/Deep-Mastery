@@ -1,0 +1,46 @@
+# Backend Engineering with Node.js & Express
+
+Welcome to **Phase 4**. It is time to shift your mindset from the browser to the server.
+
+## Node.js Core Architecture
+
+Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine. It is designed for building scalable network applications.
+
+### The Event Loop & Non-Blocking I/O
+
+Unlike traditional thread-per-request models (like Apache/PHP), Node uses a single thread and an Event Loop to handle thousands of concurrent connections efficiently via non-blocking I/O.
+
+### Streams & Buffers
+
+When dealing with large files or network data, you shouldn't load everything into memory at once. **Streams** allow you to process data piece by piece (chunks). **Buffers** are raw memory allocations outside the V8 heap used to store these binary data chunks.
+
+<CodeEditor challengeId="node-streams" initialCode="const fs = require('fs');\n// Create a read stream from 'input.txt' and pipe it to 'output.txt'\n" />
+
+## Express.js Architecture
+
+### The MVC Pattern
+
+**Model-View-Controller** separates concerns:
+*   **Model:** Data logic (Database interaction).
+*   **View:** The UI (Not used in pure APIs).
+*   **Controller:** The brain. Handles incoming requests, asks the Model for data, and sends the response.
+
+### Middleware Mastery
+
+Middleware are functions that have access to the request object (`req`), the response object (`res`), and the `next` function in the application's request-response cycle.
+
+```javascript
+// A simple logging middleware
+const logger = (req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next(); // Pass control to the next middleware or route handler
+};
+
+app.use(logger);
+```
+
+### Centralized Error Handling
+
+Never crash your server. Catch errors locally and pass them to a centralized error handling middleware using `next(err)`.
+
+<CompleteButton lessonId="lesson_4" xpReward={200} />

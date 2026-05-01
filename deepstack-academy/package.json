@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@prisma/client": "^7.8.0",
+    "@prisma/client": "^5.14.0",
     "@tailwindcss/typography": "^0.5.19",
+    "bcryptjs": "^3.0.3",
+    "cookie": "^1.1.1",
     "framer-motion": "^12.38.0",
     "iron-session": "^8.0.4",
     "lucide-react": "^1.14.0",

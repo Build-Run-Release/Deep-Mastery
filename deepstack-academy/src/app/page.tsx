@@ -7,12 +7,16 @@ import { CompleteButton } from "@/components/CompleteButton";
 import { MDXRemote } from "next-mdx-remote";
 import { BookOpen, Lock, Unlock, PlayCircle, Code } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUser } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
+import Script from "next/script";
 
 export default function Home() {
+  const router = useRouter();
   const [currentLesson, setCurrentLesson] = useState(courses[0]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { user, isPremiumUnlocked, unlockPremium } = useUser();
   const [mdxSource, setMdxSource] = useState<any>(null);
-  const [isPremiumUnlocked, setIsPremiumUnlocked] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -64,43 +68,51 @@ export default function Home() {
   }, [currentLesson, isPremiumUnlocked]);
 
   const handleUnlock = async () => {
+    if (!user) {
+      router.push("/signin");
+      return;
+    }
     setIsPaying(true);
     try {
-      const initRes = await fetch('/api/payment/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: "student@example.com",
-            amount: 1500000,
-            userId: "user_123",
-            planId: "premium_fullstack",
-          })
-      });
-
-      const initData = await initRes.json();
-
-      if (initData.status && initData.authorizationUrl) {
-          // Open authorization url in new tab
-          window.open(initData.authorizationUrl, '_blank');
-
-          // Poll for verification or provide a button for the user to confirm they paid
-          // For now, we'll simulate waiting for them to return and verify
-          setTimeout(async () => {
+      if (typeof (window as any).PaystackPop !== 'undefined') {
+        const paystack = new (window as any).PaystackPop();
+        paystack.newTransaction({
+          key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_mock_key",
+          email: user.email,
+          amount: 1500000,
+          reference: `deepstack_${Date.now()}_${Math.floor(Math.random() * 1000000)}`,
+          onSuccess: async (transaction: any) => {
+            setIsPaying(true);
+            try {
               const verifyRes = await fetch('/api/payment/verify', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ reference: initData.reference })
+                  body: JSON.stringify({ reference: transaction.reference, userId: user.id })
               });
               const verifyData = await verifyRes.json();
 
               if (verifyData.verified) {
-                  setIsPremiumUnlocked(true);
+                  unlockPremium();
               }
-          }, 10000); // 10s wait for simulation purposes, in a real app this would use webhooks or polling
+            } catch (err) {
+              console.error("Verification error", err);
+            } finally {
+              setIsPaying(false);
+            }
+          },
+          onCancel: () => {
+            setIsPaying(false);
+          }
+        });
+      } else {
+        // Mock fallback if Paystack script is unavailable
+        setTimeout(() => {
+          unlockPremium();
+          setIsPaying(false);
+        }, 1500);
       }
     } catch (e) {
       console.error("Payment failed", e);
-    } finally {
       setIsPaying(false);
     }
   };
@@ -109,6 +121,7 @@ export default function Home() {
 
   return (
     <div className="flex bg-gray-50 dark:bg-[#0B0F19] transition-colors duration-500" style={{ height: 'calc(100vh - 72px)' }}>
+      <Script src="https://js.paystack.co/v2/inline.js" strategy="lazyOnload" />
       {/* Sidebar - Glassmorphism */}
       <div className="w-80 bg-white/70 dark:bg-gray-900/50 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 p-6 overflow-y-auto shrink-0 shadow-lg z-10 flex flex-col gap-6">
         <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400">

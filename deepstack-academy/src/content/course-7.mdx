@@ -1,0 +1,42 @@
+# Security, Authentication, & Deployment
+
+Welcome to the final phase, **Phase 7**. A full-stack developer must know how to secure their applications and ship their code to the world.
+
+## Web Security
+
+### Cross-Site Scripting (XSS)
+XSS occurs when an attacker injects malicious scripts into your application. Always sanitize user input before rendering it to the DOM. React inherently protects against basic XSS by escaping values, but using `dangerouslySetInnerHTML` bypasses this protection.
+
+### Cross-Site Request Forgery (CSRF)
+CSRF tricks a victim into executing unwanted actions on a web application in which they're currently authenticated. Mitigate this using SameSite cookies and Anti-CSRF tokens.
+
+## Authentication Strategies
+
+### Sessions vs. Tokens
+*   **Stateful Sessions:** The server stores session data in memory or a database and sends a session ID via cookie. Secure, but harder to scale.
+*   **Stateless Tokens (JWT):** JSON Web Tokens encode the user data and are signed by the server. The server doesn't store them.
+
+### Implementing JWT Security
+Never store JWTs in `localStorage` as they are vulnerable to XSS. Store them in `HttpOnly` cookies.
+
+```javascript
+// Setting an HttpOnly cookie in Express/Node
+res.cookie('token', jwtToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 3600000 // 1 hour
+});
+```
+
+## Deployment & DevOps Basics
+
+### Containerization (Docker)
+Docker allows you to package your application and its dependencies into a standardized unit called a container. This ensures your app runs exactly the same way on your laptop as it does on the production server.
+
+### CI/CD Pipelines
+Continuous Integration and Continuous Deployment (CI/CD) automates the testing and deployment process. GitHub Actions is a powerful tool to run your tests every time you push code, and deploy to Vercel or AWS automatically if the tests pass.
+
+Congratulations on reaching the end of the DeepStack curriculum!
+
+<CompleteButton lessonId="lesson_7" xpReward={500} />
