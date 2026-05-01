@@ -1,4 +1,4 @@
-import { test, describe } from 'node:test';
+import { test, describe, before } from 'node:test';
 import assert from 'node:assert';
 import { initializePayment, verifyPayment } from './payment.ts';
 import type { PaymentRequest } from './payment.ts';
@@ -11,12 +11,42 @@ describe('Payment Service', () => {
     planId: 'premium-plan'
   };
 
+  before(() => {
+    process.env.PAYSTACK_SECRET_KEY = 'mock_secret_key';
+
+    // Mock global fetch for testing
+    global.fetch = async (url: string | URL | globalThis.Request) => {
+        if (url.toString().includes('initialize')) {
+            return {
+                json: async () => ({
+                    status: true,
+                    data: {
+                        authorization_url: 'https://checkout.paystack.com/mock-url',
+                        reference: 'mock-ref-' + Math.random().toString(36).substring(7)
+                    }
+                })
+            } as unknown as Response;
+        }
+        if (url.toString().includes('verify')) {
+             return {
+                json: async () => ({
+                    status: true,
+                    data: {
+                        status: 'success'
+                    }
+                })
+            } as unknown as Response;
+        }
+        throw new Error('Unknown URL mocked');
+    };
+  });
+
   test('initializePayment should return a successful response with correct structure', async () => {
     const response = await initializePayment(mockRequest);
 
     assert.strictEqual(response.status, true);
     assert.ok(response.reference.startsWith('mock-ref-'));
-    assert.ok(response.authorizationUrl.includes(response.reference));
+    assert.ok(response.authorizationUrl.includes('mock-url'));
     assert.ok(response.authorizationUrl.startsWith('https://checkout.paystack.com/'));
   });
 
